@@ -33,7 +33,6 @@ def checksum(string):
 def receiveOnePing(mySocket, ID, timeout, destAddr):
 
     timeLeft = timeout
-
     while 1:
         startedSelect = time.time()
         whatReady = select.select([mySocket], [], [], timeLeft)
@@ -48,17 +47,15 @@ def receiveOnePing(mySocket, ID, timeout, destAddr):
 
         #Fetch the ICMP header from the IP packet
         header = recPacket[20:28]
-        TTL = int(binascii.hexlify(struct.unpack("s", bytes([recPacket[8]]))[0]), 16)
         type, code, checksum, packetID, sequence = struct.unpack("bbHHh", header)
 
         if type == 0 and packetID == ID:
             byte = struct.calcsize("d")
-            timeSent = struct.unpack("d", recPacket[28:28 + byte])[0]
-            time_delay = timeReceived - timeSent
+            time_sent = struct.unpack("d", recPacket[28:28 + byte])[0]
+            time_delay = timeReceived - time_sent
+            TTL = ord(struct.unpack("c", recPacket[8:9])[0].decode())
             # Ping measures the round-trip time, records packet loss,
             # and prints a statistical summary of the echo reply packets received
-            # (the minimum, maximum, and the mean of the round-trip times
-            # and in some versions the standard deviation of the mean).
             return "destAddr: %s: bytes: %d time: %f3s TTL: %d" % (destAddr,
                                                                   len(recPacket),
                                                                   (time_delay),
@@ -117,3 +114,7 @@ def ping(host, timeout=1):
     return delay
 
 ping("127.0.0.1")
+# ping("google.com")
+# ping("baidu.com")
+# ping("royal.uk")
+# ping("gov.au")
